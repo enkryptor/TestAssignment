@@ -16,16 +16,10 @@ namespace QueueWrapper
 		/// </summary>
 		public void Push(T data)
 		{
-			var locked = false;
-			try
+			lock(_locker)
 			{
-				Monitor.Enter(_locker, ref locked);
 				_queue.Enqueue(data);
 				Monitor.Pulse(_locker);
-			}
-			finally
-			{
-				if (locked) Monitor.Exit(_locker);
 			}
 		}
 
@@ -34,21 +28,15 @@ namespace QueueWrapper
 		/// </summary>
 		public T Pop()
 		{
-			var locked = false;
-			try
+			lock(_locker)
 			{
-				Monitor.Enter(_locker, ref locked);
+
 				while (_queue.Count == 0)
 				{
 					Monitor.Wait(_locker);
 				}
 
-				var result = (T)_queue.Dequeue();
-				return result;
-			}
-			finally
-			{
-				if (locked) Monitor.Exit(_locker);
+				return (T)_queue.Dequeue();
 			}
 		}
 
@@ -60,15 +48,9 @@ namespace QueueWrapper
 		/// </remarks>
 		public int Count()
 		{
-			var locked = false;
-			try
+			lock (_locker)
 			{
-				Monitor.Enter(_locker, ref locked);
 				return _queue.Count;
-			}
-			finally
-			{
-				if (locked) Monitor.Exit(_locker);
 			}
 		}
 	}
