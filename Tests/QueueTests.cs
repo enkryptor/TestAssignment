@@ -105,6 +105,38 @@ namespace Tests
 			Assert.AreEqual(1, ((MultithreadedQueue<int>)queue).Count());
 		}
 
+		[TestMethod]
+		[Timeout(500)]
+		public void TwoPopsTest()
+		{
+			var queue = CreateQueue<int>();
+			var result1 = 0;
+			var result2 = 0;
+			var thread1 = new Thread(() => {
+				result1 = queue.Pop();
+			});
+			var thread2 = new Thread(() => {
+				result2 = queue.Pop();
+			});
+			thread2.Start();
+			Thread.Sleep(DefaultWaitTime);
+			thread1.Start();
+
+			queue.Push(44);
+			while (thread2.IsAlive)
+			{
+				Thread.Sleep(DefaultWaitTime);
+			}
+			Assert.AreEqual(44, result2);
+
+			queue.Push(33);
+			while (thread1.IsAlive)
+			{
+				Thread.Sleep(DefaultWaitTime);
+			}
+			Assert.AreEqual(33, result1);
+		}
+
 		private IQueue<T> CreateQueue<T>()
 		{
 			return new MultithreadedQueue<T>();
